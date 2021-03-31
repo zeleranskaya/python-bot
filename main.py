@@ -1,8 +1,14 @@
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
+from openpyxl import load_workbook
 import random
 
 TOKEN = '1674333840:AAHRXuYwcSfKXBfu_xx1CauSFncF4u6kfvA'
+book = load_workbook('база данных.xlsx')
+sheet_1 = book['Лист1']
+stickers_page = book['стикеры']
+
+
 
 hi = ['приветствую, мой друг', 'я рад видеть тебя!', 'давно не виделись!']
 help = ['чем тебе помочь?', 'у тебя есть какие-то проблемы?']
@@ -38,25 +44,37 @@ def main():
 
 
 def do_echo(update, context):
-
-    update.message.reply_text(randomizer.choice(what))
-
-
-
-def do_start(update, context):
-
     keyboard = [
         ['1', '2', '3'],
         ['4', '5', '6'],
     ]
 
-    update.message.reply_text(randomizer.choice(hi),
+    update.message.reply_text(randomizer.choice(what),
                               reply_markup=ReplyKeyboardMarkup(
                                   keyboard, one_time_keyboard=True, resize_keyboard=True))
 
 
+
+def do_start(update, context):
+
+    update.message.reply_text(randomizer.choice(hi))
+
+
+
 def do_something(update: Update, context):
     text = update.message.text
+
+    print(stickers_page.max_row)
+    for row in range(2, stickers_page.max_row + 1):
+        catch_phrase = stickers_page.cell(row=row, column=4).value
+        print(catch_phrase)
+        print(text)
+        if catch_phrase in text:
+            sticker_id = stickers_page.cell(row=row, column=3).value
+            print(sticker_id)
+            update.message.reply_sticker(sticker_id)
+            return
+
     if text == '1':
         update.message.reply_text('ты нажал 1', reply_markup=ReplyKeyboardRemove())
     elif text == '2':
@@ -64,9 +82,7 @@ def do_something(update: Update, context):
     elif text == '3':
         update.message.reply_text('ты нажал 3', reply_markup=ReplyKeyboardRemove())
     else:
-        update.message.reply_text('ты нажал что-то еще')
-
-
+        do_echo(update, context)
 
 
 def do_help(update: Update, context):
@@ -82,7 +98,9 @@ def do_questions(update, context):
 def do_sticker(update: Update, context):
 
     sticker_id = update.message.sticker.file_id
+    update.message.reply_text(sticker_id)
     update.message.reply_sticker(sticker_id)
- 
+
+
 
 main()
